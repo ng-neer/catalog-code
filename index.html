@@ -89,7 +89,7 @@
                                 </div>
                                 <div class="stat-item">
                                     <span class="stat-label">Общая стоимость:</span>
-                                    <span class="stat-value" id="totalPrice">0 ₽</span>
+                                    <span class="stat-value" id="totalPrice">0</span>
                                 </div>
                             </div>
                         </div>
@@ -309,8 +309,8 @@
 
             <div class="modal-footer">
                 <button type="button" class="btn btn--outline" onclick="closeViewModal()">Закрыть</button>
-                <button type="button" class="btn btn--secondary" id="editItemBtn">Редактировать</button>
-                <button type="button" class="btn btn--error" id="deleteItemBtn">Удалить</button>
+                <button type="button" class="btn btn--secondary" id="editItemBtn" onclick="editCurrentItem()">Редактировать</button>
+                <button type="button" class="btn btn--error" id="deleteItemBtn" onclick="deleteCurrentItem()">Удалить</button>
             </div>
         </div>
     </div>

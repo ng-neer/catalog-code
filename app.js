@@ -658,10 +658,27 @@ function closeStatsModal() {
 
 function showModal(modalId) {
     console.log('Showing modal:', modalId);
+    
+    // First, hide all other modals immediately without animation
+    const allModals = document.querySelectorAll('.modal');
+    allModals.forEach(modal => {
+        if (modal.id !== modalId) {
+            modal.classList.remove('visible');
+            modal.classList.add('hidden');
+            // Clear any pending timeouts for this modal
+            modal.style.transition = 'none';
+            setTimeout(() => {
+                modal.style.transition = '';
+            }, 20);
+        }
+    });
+    
+    // Then show the requested modal
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.classList.remove('hidden');
-        setTimeout(() => modal.classList.add('visible'), 10);
+        modal.style.transition = '';
+        setTimeout(() => modal.classList.add('visible'), 20);
     } else {
         console.error('Modal not found:', modalId);
     }
@@ -796,8 +813,18 @@ function deleteItem(id) {
 
 function editCurrentItem() {
     if (currentViewingId) {
-        closeViewModal();
-        openEditItemModal(currentViewingId);
+        console.log('Editing current item:', currentViewingId);
+        // First close the view modal immediately
+        const viewModal = document.getElementById('viewModal');
+        if (viewModal) {
+            viewModal.classList.remove('visible');
+            viewModal.classList.add('hidden');
+        }
+        
+        // Then open the edit modal after a short delay to ensure proper transition
+        setTimeout(() => {
+            openEditItemModal(currentViewingId);
+        }, 50);
     }
 }
 
@@ -869,7 +896,7 @@ function createViewContent(item) {
                     </div>
                     <div class="view-detail-item">
                         <span class="view-detail-label">Состояние:</span>
-                        <span class="view-detail-value">${escapeHtml(item.condition || 'Не указано')}</span>
+                        <span class="view-detail-value">${escapeHtml(item.condition || '-')}</span>
                     </div>
                     <div class="view-detail-item">
                         <span class="view-detail-label">Комментарий:</span>
@@ -1233,8 +1260,6 @@ function initializeCompactView() {
 function formatPrice(price) {
     if (!price && price !== 0) return '-';
     return new Intl.NumberFormat('ru-RU', {
-        style: 'currency',
-        currency: 'RUB',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
     }).format(price);
@@ -1283,8 +1308,6 @@ function debounce(func, wait) {
 function formatPrice(price) {
     if (!price && price !== 0) return '-';
     return new Intl.NumberFormat('ru-RU', {
-        style: 'currency',
-        currency: 'RUB',
         minimumFractionDigits: 0
     }).format(price);
 }
@@ -1370,3 +1393,5 @@ window.closeViewModal = closeViewModal;
 window.closeStatsModal = closeStatsModal;
 window.openPhotoZoom = openPhotoZoom;
 window.closePhotoZoom = closePhotoZoom;
+window.editCurrentItem = editCurrentItem;
+window.deleteCurrentItem = deleteCurrentItem;

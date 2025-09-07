@@ -1177,6 +1177,19 @@ select.form-control {
   transition: all var(--duration-normal) var(--ease-standard);
 }
 
+/* Особые z-index для разных модалок */
+#viewModal {
+  z-index: 1100;
+}
+
+#itemModal {
+  z-index: 1200; /* Выше чем view modal */
+}
+
+#statsModal {
+  z-index: 1050;
+}
+
 .modal.visible {
   opacity: 1;
   visibility: visible;
