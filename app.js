@@ -183,6 +183,17 @@ function setupEventListeners() {
     // Импорт файла
     const importInput = document.getElementById('importInput');
     if (importInput) importInput.addEventListener('change', handleImportFile);
+    
+    // Закрытие меню при клике вне их
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.action-menu-container')) {
+            closeAllActionMenus();
+        }
+    });
+    
+    // Закрытие меню при прокрутке
+    window.addEventListener('scroll', closeAllActionMenus);
+    window.addEventListener('resize', closeAllActionMenus);
 }
 
 // Загрузка данных из localStorage
@@ -477,8 +488,16 @@ function renderTable() {
                 </td>
                 <td>
                     <div class="action-buttons">
-                        <button class="action-btn action-btn--edit" onclick="event.stopPropagation(); openEditItemModal(${item.id});">Редактировать</button>
-                        <button class="action-btn action-btn--delete" onclick="event.stopPropagation(); confirmDelete(${item.id});">Удалить</button>
+                        <div class="action-menu-container">
+                            <button class="action-menu-btn" onclick="event.stopPropagation(); toggleActionMenu(this, ${item.id});" title="Действия">
+                                <span class="menu-dots">⋮</span>
+                            </button>
+                            <div class="action-menu hidden">
+                                <button class="menu-item" onclick="event.stopPropagation(); duplicateItem(${item.id});">Дублировать</button>
+                                <button class="menu-item" onclick="event.stopPropagation(); openEditItemModal(${item.id});">Редактировать</button>
+                                <button class="menu-item menu-item--danger" onclick="event.stopPropagation(); confirmDelete(${item.id});">Удалить</button>
+                            </div>
+                        </div>
                     </div>
                 </td>
             </tr>
@@ -1037,6 +1056,110 @@ function toggleCompactView() {
     } catch (error) {
         console.error('Error saving compact view state:', error);
     }
+}
+
+// Переключение меню действий
+function toggleActionMenu(button, itemId) {
+    // Закрываем все другие открытые меню
+    document.querySelectorAll('.action-menu').forEach(menu => {
+        if (menu !== button.nextElementSibling) {
+            menu.classList.add('hidden');
+            // Сбрасываем позиционирование
+            menu.style.position = '';
+            menu.style.top = '';
+            menu.style.left = '';
+            menu.style.right = '';
+            menu.style.bottom = '';
+        }
+    });
+    
+    // Переключаем текущее меню
+    const menu = button.nextElementSibling;
+    menu.classList.toggle('hidden');
+    
+    // Позиционируем меню как контекстное меню
+    if (!menu.classList.contains('hidden')) {
+        // Используем fixed позиционирование для выхода за пределы контейнера
+        menu.style.position = 'fixed';
+        
+        // Получаем координаты кнопки относительно вьюпорта
+        const buttonRect = button.getBoundingClientRect();
+        
+        // Получаем размеры меню (сначала показываем его для измерения)
+        menu.style.visibility = 'hidden';
+        menu.style.display = 'block';
+        const menuRect = menu.getBoundingClientRect();
+        menu.style.visibility = '';
+        menu.style.display = '';
+        
+        // Рассчитываем оптимальную позицию
+        let left = buttonRect.left;
+        let top = buttonRect.bottom + 2; // Небольшой отступ
+        
+        // Проверяем горизонтальное переполнение
+        if (left + menuRect.width > window.innerWidth) {
+            // Меню выходит за правую границу - сдвигаем влево
+            left = buttonRect.right - menuRect.width;
+        }
+        
+        // Проверяем, что меню не выходит за левую границу
+        if (left < 0) {
+            left = 8; // Минимальный отступ от края экрана
+        }
+        
+        // Проверяем вертикальное переполнение
+        if (top + menuRect.height > window.innerHeight) {
+            // Меню выходит за нижнюю границу - показываем сверху
+            top = buttonRect.top - menuRect.height - 2;
+        }
+        
+        // Проверяем, что меню не выходит за верхнюю границу
+        if (top < 0) {
+            top = 8; // Минимальный отступ от верха экрана
+        }
+        
+        // Применяем позицию
+        menu.style.left = `${left}px`;
+        menu.style.top = `${top}px`;
+        menu.style.right = 'auto';
+        menu.style.bottom = 'auto';
+    } else {
+        // Возвращаем обычное позиционирование
+        menu.style.position = '';
+        menu.style.top = '';
+        menu.style.left = '';
+        menu.style.right = '';
+        menu.style.bottom = '';
+    }
+}
+
+// Дублирование элемента
+function duplicateItem(itemId) {
+    const item = items.find(i => i.id === itemId);
+    if (item) {
+        const duplicatedItem = {
+            ...item,
+            id: nextId++,
+            name: `${item.name} (копия)`
+        };
+        items.push(duplicatedItem);
+        saveData();
+        applyFilters();
+        console.log('Item duplicated:', duplicatedItem);
+    }
+}
+
+// Закрытие всех меню при клике вне их
+function closeAllActionMenus() {
+    document.querySelectorAll('.action-menu').forEach(menu => {
+        menu.classList.add('hidden');
+        // Сбрасываем позиционирование
+        menu.style.position = '';
+        menu.style.top = '';
+        menu.style.left = '';
+        menu.style.right = '';
+        menu.style.bottom = '';
+    });
 }
 
 // Инициализация состояния компактного вида

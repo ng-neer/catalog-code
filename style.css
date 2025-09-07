@@ -894,13 +894,16 @@ select.form-control {
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-card-border);
   box-shadow: var(--shadow-sm);
-  overflow: hidden;
+  overflow: visible; /* Изменено с hidden на visible для меню */
+  position: relative;
 }
 
 .items-table {
   width: 100%;
   border-collapse: collapse;
   font-size: var(--font-size-sm);
+  overflow: hidden; /* Для сохранения скругленных углов */
+  border-radius: var(--radius-lg);
 }
 
 .items-table thead {
@@ -1033,36 +1036,90 @@ select.form-control {
   display: flex;
   gap: var(--space-4);
   flex-wrap: nowrap;
+  justify-content: center;
 }
 
-.action-btn {
-  padding: var(--space-4) var(--space-8);
+/* Меню действий */
+.action-menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+.action-menu-btn {
+  padding: var(--space-6) var(--space-8);
   border: none;
   border-radius: var(--radius-sm);
-  font-size: var(--font-size-xs);
+  background-color: var(--color-bg-1);
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: all var(--duration-fast) var(--ease-standard);
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  min-width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-menu-btn:hover {
+  background-color: var(--color-secondary);
+  color: var(--color-text);
+}
+
+.menu-dots {
+  font-weight: bold;
+  user-select: none;
+}
+
+.action-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+  box-shadow: var(--shadow-lg);
+  z-index: 9999; /* Максимальный z-index для контекстного меню */
+  min-width: 140px;
+  padding: var(--space-4) 0;
+  margin-top: var(--space-2);
   white-space: nowrap;
 }
 
-.action-btn--edit {
-  background-color: var(--color-bg-2);
-  color: var(--color-warning);
+/* Когда меню в fixed позиции, убираем маржин */
+.action-menu[style*="position: fixed"] {
+  margin-top: 0;
 }
 
-.action-btn--edit:hover {
-  background-color: var(--color-warning);
-  color: var(--color-surface);
+.action-menu.hidden {
+  display: none;
 }
 
-.action-btn--delete {
-  background-color: var(--color-bg-4);
+.menu-item {
+  display: block;
+  width: 100%;
+  padding: var(--space-8) var(--space-12);
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  transition: background-color var(--duration-fast) var(--ease-standard);
+}
+
+.menu-item:hover {
+  background-color: var(--color-secondary);
+}
+
+.menu-item--danger {
   color: var(--color-error);
 }
 
-.action-btn--delete:hover {
-  background-color: var(--color-error);
-  color: var(--color-surface);
+.menu-item--danger:hover {
+  background-color: rgba(var(--color-error-rgb), 0.1);
+  color: var(--color-error);
 }
 
 /* Пустое состояние */
@@ -1408,6 +1465,10 @@ select.form-control {
     flex-direction: column;
   }
   
+  .action-menu {
+    min-width: 120px; /* Меньшая ширина на мобильных */
+  }
+  
   .items-table th,
   .items-table td {
     padding: var(--space-8);
@@ -1468,8 +1529,15 @@ select.form-control {
   gap: var(--space-2);
 }
 
-.table-container.compact .action-btn {
-  padding: var(--space-2) var(--space-6);
+.table-container.compact .action-menu-btn {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  min-width: 24px;
+  height: 24px;
+}
+
+.table-container.compact .menu-item {
+  padding: var(--space-6) var(--space-10);
   font-size: 10px;
 }
 
