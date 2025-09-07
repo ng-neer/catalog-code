@@ -1051,9 +1051,38 @@ select.form-control {
   color: var(--color-primary);
 }
 
+.item-quantity {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}
+
 .item-date {
   color: var(--color-text-secondary);
   font-size: var(--font-size-xs);
+}
+
+/* Archived items styling */
+.archived-item {
+  opacity: 0.6;
+  background-color: var(--color-bg-7) !important;
+  border-left: 3px solid rgba(var(--color-text-secondary-rgb), 0.4);
+}
+
+.archived-item:hover {
+  opacity: 0.8;
+  background-color: var(--color-bg-6) !important;
+}
+
+.archived-item .item-name {
+  text-decoration: line-through;
+  color: var(--color-text-secondary);
+}
+
+.archived-item .item-price,
+.archived-item .item-category,
+.archived-item .item-condition {
+  opacity: 0.7;
 }
 
 /* Кнопки действий */

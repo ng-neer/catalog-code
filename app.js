@@ -15,13 +15,13 @@ const CATEGORIES = ["Мебель", "Текстиль", "Посуда и кух�
 const SAMPLE_ITEMS = [
     {
         id: 1,
+        uuid: generateUUID(),
         name: "Кофемашина DeLonghi",
         description: "Автоматическая кофемашина с капучинатором",
         purchaseDate: "2023-05-15",
-        websites: ["https://delonghi.com", "https://shop.delonghi.com"],
+        website: "https://delonghi.com",
         photos: ["https://via.placeholder.com/300x200?text=Кофемашина"],
         mainPhoto: 0,
-        quantity: 1,
         purchasePrice: 35000.50,
         sellPrice: null,
         condition: "Отличное",
@@ -38,19 +38,22 @@ const SAMPLE_ITEMS = [
         completeness: "Полная",
         purchaseLocation: "М.Видео",
         countryOfOrigin: "Италия",
-        notes: "Куплена по акции"
+        notes: "Куплена по акции",
+        quantity: 1,
+        archived: false,
+        createdAt: getCurrentTimestamp(),
+        updatedAt: getCurrentTimestamp()
     },
     {
         id: 2,
         name: "Диван угловой",
         description: "Большой угловой диван из натуральной кожи",
         purchaseDate: "2022-12-01",
-        websites: ["https://furniture.com"],
+        website: "https://furniture.com",
         photos: ["https://via.placeholder.com/300x200?text=Диван"],
         mainPhoto: 0,
-        quantity: 1,
-        purchasePrice: 85000.99,
-        sellPrice: 65000.00,
+        purchasePrice: 85000,
+        sellPrice: 65000,
         condition: "Хорошее",
         conditionComment: "Небольшие потертости",
         category: "Мебель",
@@ -65,18 +68,21 @@ const SAMPLE_ITEMS = [
         completeness: "Полная",
         purchaseLocation: "Гранд Мебель",
         countryOfOrigin: "Италия",
-        notes: "Очень удобный"
+        notes: "Очень удобный",
+        quantity: 1,
+        archived: false,
+        createdAt: getCurrentTimestamp(),
+        updatedAt: getCurrentTimestamp()
     },
     {
         id: 3,
         name: "iPhone 14 Pro",
         description: "Смартфон Apple iPhone 14 Pro 256GB",
         purchaseDate: "2024-01-20",
-        websites: ["https://apple.com", "https://re-store.ru", "https://techspecs.blog"],
+        website: "https://apple.com",
         photos: ["https://via.placeholder.com/300x200?text=iPhone"],
         mainPhoto: 0,
-        quantity: 2,
-        purchasePrice: 120000.75,
+        purchasePrice: 120000,
         sellPrice: null,
         condition: "Новый",
         conditionComment: "В заводской пленке",
@@ -92,7 +98,11 @@ const SAMPLE_ITEMS = [
         completeness: "Полная с документами",
         purchaseLocation: "re:Store",
         countryOfOrigin: "Китай",
-        notes: "Подарок на день рождения"
+        notes: "Подарок на день рождения",
+        quantity: 1,
+        archived: false,
+        createdAt: getCurrentTimestamp(),
+        updatedAt: getCurrentTimestamp()
     }
 ];
 
@@ -164,6 +174,10 @@ function setupEventListeners() {
     const dateToFilter = document.getElementById('dateToFilter');
     if (dateToFilter) dateToFilter.addEventListener('change', applyFilters);
     
+    // Фильтр архива
+    const archiveFilter = document.getElementById('archiveFilter');
+    if (archiveFilter) archiveFilter.addEventListener('change', applyFilters);
+
     const clearFiltersBtn = document.getElementById('clearFiltersBtn');
     if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearFilters);
 
@@ -205,19 +219,8 @@ function loadData() {
         const savedItems = localStorage.getItem('catalogItems');
         if (savedItems) {
             items = JSON.parse(savedItems);
-            
-            // Обеспечиваем обратную совместимость для количества и вебсайтов
-            items = items.map(item => ({
-                ...item,
-                quantity: item.quantity || 1,
-                websites: item.websites || (item.website ? [item.website] : [])
-            }));
-            
             nextId = Math.max(...items.map(item => item.id || 0), 0) + 1;
             console.log('Data loaded from localStorage:', items.length, 'items');
-            
-            // Сохраняем обновленные данные
-            saveData();
         }
     } catch (error) {
         console.error('Error loading data:', error);
@@ -406,6 +409,25 @@ function applyFilters() {
         }
     }
     
+    // Фильтр по архиву
+    const archiveFilterEl = document.getElementById('archiveFilter');
+    if (archiveFilterEl) {
+        const archiveFilter = archiveFilterEl.value;
+        console.log('Archive filter value:', archiveFilter);
+        if (archiveFilter === 'active') {
+            // Показать только активные (неархивированные)
+            const beforeFilter = filteredItems.length;
+            filteredItems = filteredItems.filter(item => !item.archived);
+            console.log(`Archive filter (active): ${beforeFilter} -> ${filteredItems.length} items`);
+        } else if (archiveFilter === 'archived') {
+            // Показать только архивированные
+            const beforeFilter = filteredItems.length;
+            filteredItems = filteredItems.filter(item => item.archived);
+            console.log(`Archive filter (archived): ${beforeFilter} -> ${filteredItems.length} items`);
+        }
+        // Если 'all' - показываем все, не фильтруем
+    }
+    
     // Сортировка
     if (currentSort.column) {
         filteredItems.sort((a, b) => {
@@ -478,9 +500,11 @@ function renderTable() {
     tableBody.innerHTML = filteredItems.map(item => {
         const mainPhotoUrl = item.photos && item.photos.length > 0 ? item.photos[item.mainPhoto || 0] : null;
         const conditionClass = getConditionClass(item.condition);
+        const archivedClass = item.archived ? 'archived-item' : '';
+        const quantity = item.quantity || 1;
         
         return `
-            <tr class="table-row-clickable" data-item-id="${item.id}" style="cursor: pointer;">
+            <tr class="table-row-clickable ${archivedClass}" data-item-id="${item.id}" style="cursor: pointer;">
                 <td class="photo-column">
                     <div class="item-photo" ${mainPhotoUrl ? `style="background-image: url('${mainPhotoUrl}')"` : ''}>
                         ${mainPhotoUrl ? '' : '-'}
@@ -496,13 +520,13 @@ function renderTable() {
                     <span class="item-condition ${conditionClass}">${escapeHtml(item.condition || '-')}</span>
                 </td>
                 <td>
-                    <span class="item-quantity">${item.quantity || 1} шт.</span>
+                    <span class="item-quantity">${quantity} шт.</span>
                 </td>
                 <td>
-                    <span class="item-price">${formatPrice(item.purchasePrice)} ${item.quantity > 1 ? `(за ед.) = ${formatPrice((item.purchasePrice || 0) * (item.quantity || 1))}` : ''}</span>
+                    <span class="item-price">${formatPrice(item.purchasePrice)}</span>
                 </td>
                 <td>
-                    <span class="item-price">${formatPrice(item.sellPrice)} ${item.sellPrice && item.quantity > 1 ? `(за ед.) = ${formatPrice((item.sellPrice || 0) * (item.quantity || 1))}` : ''}</span>
+                    <span class="item-price">${formatPrice(item.sellPrice)}</span>
                 </td>
                 <td>
                     <span class="item-date">${formatDate(item.purchaseDate)}</span>
@@ -516,6 +540,7 @@ function renderTable() {
                             <div class="action-menu hidden">
                                 <button class="menu-item" onclick="event.stopPropagation(); duplicateItem(${item.id});">Дублировать</button>
                                 <button class="menu-item" onclick="event.stopPropagation(); openEditItemModal(${item.id});">Редактировать</button>
+                                <button class="menu-item" onclick="event.stopPropagation(); toggleArchiveItem(${item.id});">${item.archived ? 'Разархивировать' : 'Архивировать'}</button>
                                 <button class="menu-item menu-item--danger" onclick="event.stopPropagation(); confirmDelete(${item.id});">Удалить</button>
                             </div>
                         </div>
@@ -573,7 +598,11 @@ function getConditionClass(condition) {
 // Обновление статистики
 function updateStats() {
     const foundCount = filteredItems.length;
-    const totalPrice = filteredItems.reduce((sum, item) => sum + ((item.purchasePrice || 0) * (item.quantity || 1)), 0);
+    const totalPrice = filteredItems.reduce((sum, item) => {
+        const quantity = item.quantity || 1;
+        const price = item.purchasePrice || 0;
+        return sum + (price * quantity);
+    }, 0);
     
     const foundCountEl = document.getElementById('foundCount');
     const totalPriceEl = document.getElementById('totalPrice');
@@ -598,6 +627,10 @@ function clearFilters() {
     
     const dateToFilter = document.getElementById('dateToFilter');
     if (dateToFilter) dateToFilter.value = '';
+    
+    // Очистка фильтра архива
+    const archiveFilter = document.getElementById('archiveFilter');
+    if (archiveFilter) archiveFilter.value = 'active';
     
     // Очистка чекбоксов
     document.querySelectorAll('#categoryFilters input[type="checkbox"]').forEach(cb => cb.checked = false);
@@ -679,27 +712,10 @@ function closeStatsModal() {
 
 function showModal(modalId) {
     console.log('Showing modal:', modalId);
-    
-    // First, hide all other modals immediately without animation
-    const allModals = document.querySelectorAll('.modal');
-    allModals.forEach(modal => {
-        if (modal.id !== modalId) {
-            modal.classList.remove('visible');
-            modal.classList.add('hidden');
-            // Clear any pending timeouts for this modal
-            modal.style.transition = 'none';
-            setTimeout(() => {
-                modal.style.transition = '';
-            }, 20);
-        }
-    });
-    
-    // Then show the requested modal
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.classList.remove('hidden');
-        modal.style.transition = '';
-        setTimeout(() => modal.classList.add('visible'), 20);
+        setTimeout(() => modal.classList.add('visible'), 10);
     } else {
         console.error('Modal not found:', modalId);
     }
@@ -740,9 +756,6 @@ function collectFormData() {
     const photosText = getData('itemPhotos');
     const photos = photosText ? photosText.split('\n').map(url => url.trim()).filter(url => url) : [];
     
-    const websitesText = getData('itemWebsite');
-    const websites = websitesText ? websitesText.split('\n').map(url => url.trim()).filter(url => url) : [];
-    
     const tagsText = getData('itemTags');
     const tags = tagsText ? tagsText.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
     
@@ -750,7 +763,7 @@ function collectFormData() {
         name: getData('itemName'),
         description: getData('itemDescription'),
         purchaseDate: getData('itemPurchaseDate'),
-        websites: websites,
+        website: getData('itemWebsite'),
         photos: photos,
         mainPhoto: 0,
         quantity: parseInt(getData('itemQuantity')) || 1,
@@ -783,7 +796,7 @@ function fillForm(item) {
     setData('itemName', item.name);
     setData('itemDescription', item.description);
     setData('itemPurchaseDate', item.purchaseDate);
-    setData('itemWebsite', (item.websites || [item.website]).filter(Boolean).join('\n'));
+    setData('itemWebsite', item.website);
     setData('itemPhotos', (item.photos || []).join('\n'));
     setData('itemQuantity', item.quantity || 1);
     setData('itemPurchasePrice', item.purchasePrice);
@@ -839,53 +852,21 @@ function deleteItem(id) {
 
 function editCurrentItem() {
     if (currentViewingId) {
-        console.log('Editing current item:', currentViewingId);
-        // First close the view modal immediately
-        const viewModal = document.getElementById('viewModal');
-        if (viewModal) {
-            viewModal.classList.remove('visible');
-            viewModal.classList.add('hidden');
-        }
-        
-        // Then open the edit modal after a short delay to ensure proper transition
-        setTimeout(() => {
-            openEditItemModal(currentViewingId);
-        }, 50);
+        const itemId = currentViewingId; // Store the ID before closing modal
+        closeViewModal(); // This will set currentViewingId to null
+        openEditItemModal(itemId); // Use the stored ID
     }
 }
 
 function deleteCurrentItem() {
     if (currentViewingId) {
-        const item = items.find(i => i.id === currentViewingId);
+        const itemId = currentViewingId; // Store the ID before operations
+        const item = items.find(i => i.id === itemId);
         if (item && confirm(`Вы уверены, что хотите удалить "${item.name}"?`)) {
-            deleteItem(currentViewingId);
+            deleteItem(itemId);
             closeViewModal();
         }
     }
-}
-
-// Функция для упрощения отображения URL
-function simplifyUrl(url) {
-    try {
-        const urlObj = new URL(url);
-        return urlObj.hostname.replace('www.', '');
-    } catch {
-        return url;
-    }
-}
-
-// Функция для отображения веб-сайтов
-function renderWebsites(item) {
-    const websites = item.websites || (item.website ? [item.website] : []);
-    
-    if (!websites || websites.length === 0) {
-        return '-';
-    }
-    
-    return websites.map(url => {
-        const displayText = simplifyUrl(url);
-        return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="view-website">${escapeHtml(displayText)}</a>`;
-    }).join(', ');
 }
 
 // Создание контента для просмотра
@@ -927,38 +908,26 @@ function createViewContent(item) {
                         <span class="view-detail-value">${formatDate(item.purchaseDate)}</span>
                     </div>
                     <div class="view-detail-item">
-                        <span class="view-detail-label">Сайты:</span>
-                        <span class="view-detail-value">${renderWebsites(item)}</span>
+                        <span class="view-detail-label">Сайт:</span>
+                        <span class="view-detail-value">
+                            ${item.website ? `<a href="${item.website}" target="_blank" class="view-website">${item.website}</a>` : '-'}
+                        </span>
                     </div>
                 </div>
                 
                 <div class="view-detail-group">
                     <h4>Цены и состояние</h4>
                     <div class="view-detail-item">
-                        <span class="view-detail-label">Количество:</span>
-                        <span class="view-detail-value">${item.quantity || 1} шт.</span>
-                    </div>
-                    <div class="view-detail-item">
-                        <span class="view-detail-label">Цена покупки (за ед.):</span>
+                        <span class="view-detail-label">Цена покупки:</span>
                         <span class="view-detail-value">${formatPrice(item.purchasePrice)}</span>
                     </div>
-                    ${item.quantity > 1 ? `
                     <div class="view-detail-item">
-                        <span class="view-detail-label">Общая стоимость покупки:</span>
-                        <span class="view-detail-value">${formatPrice((item.purchasePrice || 0) * (item.quantity || 1))}</span>
-                    </div>` : ''}
-                    <div class="view-detail-item">
-                        <span class="view-detail-label">Цена продажи (за ед.):</span>
+                        <span class="view-detail-label">Цена продажи:</span>
                         <span class="view-detail-value">${formatPrice(item.sellPrice)}</span>
                     </div>
-                    ${item.sellPrice && item.quantity > 1 ? `
-                    <div class="view-detail-item">
-                        <span class="view-detail-label">Общая стоимость продажи:</span>
-                        <span class="view-detail-value">${formatPrice((item.sellPrice || 0) * (item.quantity || 1))}</span>
-                    </div>` : ''}
                     <div class="view-detail-item">
                         <span class="view-detail-label">Состояние:</span>
-                        <span class="view-detail-value">${escapeHtml(item.condition || '-')}</span>
+                        <span class="view-detail-value">${escapeHtml(item.condition || 'Не указано')}</span>
                     </div>
                     <div class="view-detail-item">
                         <span class="view-detail-label">Комментарий:</span>
@@ -1030,22 +999,21 @@ function createViewContent(item) {
 // Создание контента статистики
 function createStatsContent() {
     const totalItems = items.length;
-    const totalQuantity = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
-    const totalValue = items.reduce((sum, item) => sum + ((item.purchasePrice || 0) * (item.quantity || 1)), 0);
-    const averagePrice = totalItems > 0 ? totalValue / totalQuantity : 0;
+    const totalValue = items.reduce((sum, item) => sum + (item.purchasePrice || 0), 0);
+    const averagePrice = totalItems > 0 ? totalValue / totalItems : 0;
     
     // Статистика по категориям
     const categoryStats = {};
     items.forEach(item => {
         const category = item.category || 'Без категории';
-        categoryStats[category] = (categoryStats[category] || 0) + (item.quantity || 1);
+        categoryStats[category] = (categoryStats[category] || 0) + 1;
     });
     
     // Статистика по состояниям
     const conditionStats = {};
     items.forEach(item => {
-        const condition = item.condition || '-';
-        conditionStats[condition] = (conditionStats[condition] || 0) + (item.quantity || 1);
+        const condition = item.condition || 'Не указано';
+        conditionStats[condition] = (conditionStats[condition] || 0) + 1;
     });
     
     const categoryStatsHtml = Object.entries(categoryStats)
@@ -1069,19 +1037,15 @@ function createStatsContent() {
     return `
         <div class="stats-grid">
             <div class="stats-card">
-                <h4>Позиций в каталоге</h4>
+                <h4>Всего вещей</h4>
                 <div class="stats-value">${totalItems}</div>
-            </div>
-            <div class="stats-card">
-                <h4>Общее количество вещей</h4>
-                <div class="stats-value">${totalQuantity} шт.</div>
             </div>
             <div class="stats-card">
                 <h4>Общая стоимость</h4>
                 <div class="stats-value">${formatPrice(totalValue)}</div>
             </div>
             <div class="stats-card">
-                <h4>Средняя цена за единицу</h4>
+                <h4>Средняя цена</h4>
                 <div class="stats-value">${formatPrice(averagePrice)}</div>
             </div>
         </div>
@@ -1172,6 +1136,58 @@ function toggleCompactView() {
     } catch (error) {
         console.error('Error saving compact view state:', error);
     }
+}
+
+// Архивирование элемента
+function toggleArchiveItem(itemId) {
+    const item = items.find(i => i.id === itemId);
+    if (item) {
+        item.archived = !item.archived;
+        if (typeof getCurrentTimestamp === 'function') {
+            item.updatedAt = getCurrentTimestamp();
+        }
+        saveData();
+        applyFilters();
+        console.log('Item archive status toggled:', item);
+    }
+}
+
+// Дублирование элемента
+function duplicateItem(itemId) {
+    const item = items.find(i => i.id === itemId);
+    if (item) {
+        const duplicatedItem = {
+            ...item,
+            id: nextId++,
+            name: `${item.name} (копия)`,
+            archived: false
+        };
+        if (typeof generateUUID === 'function') {
+            duplicatedItem.uuid = generateUUID();
+        }
+        if (typeof getCurrentTimestamp === 'function') {
+            duplicatedItem.createdAt = getCurrentTimestamp();
+            duplicatedItem.updatedAt = getCurrentTimestamp();
+        }
+        items.push(duplicatedItem);
+        saveData();
+        applyFilters();
+        console.log('Item duplicated:', duplicatedItem);
+    }
+}
+
+// Функция для генерации UUID
+function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+// Функция для получения текущего времени в ISO формате
+function getCurrentTimestamp() {
+    return new Date().toISOString();
 }
 
 // Переключение меню действий
@@ -1327,6 +1343,8 @@ function initializeCompactView() {
 function formatPrice(price) {
     if (!price && price !== 0) return '-';
     return new Intl.NumberFormat('ru-RU', {
+        style: 'currency',
+        currency: 'RUB',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
     }).format(price);
@@ -1375,8 +1393,9 @@ function debounce(func, wait) {
 function formatPrice(price) {
     if (!price && price !== 0) return '-';
     return new Intl.NumberFormat('ru-RU', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2
+        style: 'currency',
+        currency: 'RUB',
+        minimumFractionDigits: 0
     }).format(price);
 }
 
@@ -1461,5 +1480,7 @@ window.closeViewModal = closeViewModal;
 window.closeStatsModal = closeStatsModal;
 window.openPhotoZoom = openPhotoZoom;
 window.closePhotoZoom = closePhotoZoom;
+window.toggleArchiveItem = toggleArchiveItem;
+window.duplicateItem = duplicateItem;
 window.editCurrentItem = editCurrentItem;
 window.deleteCurrentItem = deleteCurrentItem;

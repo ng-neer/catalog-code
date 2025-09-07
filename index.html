@@ -77,6 +77,15 @@
                                 <input type="date" id="dateToFilter" class="form-control">
                             </div>
 
+                            <div class="form-group">
+                                <label class="form-label">Отображение архива</label>
+                                <select id="archiveFilter" class="form-control">
+                                    <option value="all">Показать все</option>
+                                    <option value="active" selected>Без архива</option>
+                                    <option value="archived">Только архив</option>
+                                </select>
+                            </div>
+
                             <button class="btn btn--secondary btn--full-width" id="clearFiltersBtn">Очистить фильтры</button>
                         </div>
 
