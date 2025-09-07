@@ -22,7 +22,7 @@ const SAMPLE_ITEMS = [
         photos: ["https://via.placeholder.com/300x200?text=Кофемашина"],
         mainPhoto: 0,
         quantity: 1,
-        purchasePrice: 35000,
+        purchasePrice: 35000.50,
         sellPrice: null,
         condition: "Отличное",
         conditionComment: "Практически не использовалась",
@@ -49,8 +49,8 @@ const SAMPLE_ITEMS = [
         photos: ["https://via.placeholder.com/300x200?text=Диван"],
         mainPhoto: 0,
         quantity: 1,
-        purchasePrice: 85000,
-        sellPrice: 65000,
+        purchasePrice: 85000.99,
+        sellPrice: 65000.00,
         condition: "Хорошее",
         conditionComment: "Небольшие потертости",
         category: "Мебель",
@@ -76,7 +76,7 @@ const SAMPLE_ITEMS = [
         photos: ["https://via.placeholder.com/300x200?text=iPhone"],
         mainPhoto: 0,
         quantity: 2,
-        purchasePrice: 120000,
+        purchasePrice: 120000.75,
         sellPrice: null,
         condition: "Новый",
         conditionComment: "В заводской пленке",
@@ -1375,7 +1375,8 @@ function debounce(func, wait) {
 function formatPrice(price) {
     if (!price && price !== 0) return '-';
     return new Intl.NumberFormat('ru-RU', {
-        minimumFractionDigits: 0
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
     }).format(price);
 }
 
