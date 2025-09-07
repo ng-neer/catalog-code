@@ -114,6 +114,10 @@
                                             Состояние
                                             <span class="sort-indicator"></span>
                                         </th>
+                                        <th class="sortable" data-column="quantity">
+                                            Количество
+                                            <span class="sort-indicator"></span>
+                                        </th>
                                         <th class="sortable" data-column="purchasePrice">
                                             Цена покупки
                                             <span class="sort-indicator"></span>
@@ -183,9 +187,14 @@
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">Ссылка на сайт</label>
-                        <input type="url" id="itemWebsite" class="form-control">
+                        <label class="form-label">Количество</label>
+                        <input type="number" id="itemQuantity" class="form-control" min="1" value="1">
                     </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Ссылка на сайт</label>
+                    <input type="url" id="itemWebsite" class="form-control">
                 </div>
 
                 <div class="form-group">

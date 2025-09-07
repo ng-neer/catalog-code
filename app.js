@@ -21,6 +21,7 @@ const SAMPLE_ITEMS = [
         website: "https://delonghi.com",
         photos: ["https://via.placeholder.com/300x200?text=Кофемашина"],
         mainPhoto: 0,
+        quantity: 1,
         purchasePrice: 35000,
         sellPrice: null,
         condition: "Отличное",
@@ -47,6 +48,7 @@ const SAMPLE_ITEMS = [
         website: "https://furniture.com",
         photos: ["https://via.placeholder.com/300x200?text=Диван"],
         mainPhoto: 0,
+        quantity: 1,
         purchasePrice: 85000,
         sellPrice: 65000,
         condition: "Хорошее",
@@ -73,6 +75,7 @@ const SAMPLE_ITEMS = [
         website: "https://apple.com",
         photos: ["https://via.placeholder.com/300x200?text=iPhone"],
         mainPhoto: 0,
+        quantity: 2,
         purchasePrice: 120000,
         sellPrice: null,
         condition: "Новый",
@@ -202,8 +205,18 @@ function loadData() {
         const savedItems = localStorage.getItem('catalogItems');
         if (savedItems) {
             items = JSON.parse(savedItems);
+            
+            // Обеспечиваем обратную совместимость для количества
+            items = items.map(item => ({
+                ...item,
+                quantity: item.quantity || 1
+            }));
+            
             nextId = Math.max(...items.map(item => item.id || 0), 0) + 1;
             console.log('Data loaded from localStorage:', items.length, 'items');
+            
+            // Сохраняем обновленные данные
+            saveData();
         }
     } catch (error) {
         console.error('Error loading data:', error);
@@ -410,6 +423,10 @@ function applyFilters() {
                     valueA = (a.condition || '').toLowerCase();
                     valueB = (b.condition || '').toLowerCase();
                     break;
+                case 'quantity':
+                    valueA = a.quantity || 1;
+                    valueB = b.quantity || 1;
+                    break;
                 case 'purchasePrice':
                     valueA = a.purchasePrice || 0;
                     valueB = b.purchasePrice || 0;
@@ -478,10 +495,13 @@ function renderTable() {
                     <span class="item-condition ${conditionClass}">${escapeHtml(item.condition || '-')}</span>
                 </td>
                 <td>
-                    <span class="item-price">${formatPrice(item.purchasePrice)}</span>
+                    <span class="item-quantity">${item.quantity || 1} шт.</span>
                 </td>
                 <td>
-                    <span class="item-price">${formatPrice(item.sellPrice)}</span>
+                    <span class="item-price">${formatPrice(item.purchasePrice)} ${item.quantity > 1 ? `(за ед.) = ${formatPrice((item.purchasePrice || 0) * (item.quantity || 1))}` : ''}</span>
+                </td>
+                <td>
+                    <span class="item-price">${formatPrice(item.sellPrice)} ${item.sellPrice && item.quantity > 1 ? `(за ед.) = ${formatPrice((item.sellPrice || 0) * (item.quantity || 1))}` : ''}</span>
                 </td>
                 <td>
                     <span class="item-date">${formatDate(item.purchaseDate)}</span>
@@ -552,7 +572,7 @@ function getConditionClass(condition) {
 // Обновление статистики
 function updateStats() {
     const foundCount = filteredItems.length;
-    const totalPrice = filteredItems.reduce((sum, item) => sum + (item.purchasePrice || 0), 0);
+    const totalPrice = filteredItems.reduce((sum, item) => sum + ((item.purchasePrice || 0) * (item.quantity || 1)), 0);
     
     const foundCountEl = document.getElementById('foundCount');
     const totalPriceEl = document.getElementById('totalPrice');
@@ -729,6 +749,7 @@ function collectFormData() {
         website: getData('itemWebsite'),
         photos: photos,
         mainPhoto: 0,
+        quantity: parseInt(getData('itemQuantity')) || 1,
         purchasePrice: parseFloat(getData('itemPurchasePrice')) || 0,
         sellPrice: parseFloat(getData('itemSellPrice')) || null,
         condition: getData('itemCondition'),
@@ -760,6 +781,7 @@ function fillForm(item) {
     setData('itemPurchaseDate', item.purchaseDate);
     setData('itemWebsite', item.website);
     setData('itemPhotos', (item.photos || []).join('\n'));
+    setData('itemQuantity', item.quantity || 1);
     setData('itemPurchasePrice', item.purchasePrice);
     setData('itemSellPrice', item.sellPrice);
     setData('itemCondition', item.condition);
@@ -887,13 +909,27 @@ function createViewContent(item) {
                 <div class="view-detail-group">
                     <h4>Цены и состояние</h4>
                     <div class="view-detail-item">
-                        <span class="view-detail-label">Цена покупки:</span>
-                        <span class="view-detail-value">${formatPrice(item.purchasePrice)}</span>
+                        <span class="view-detail-label">Количество:</span>
+                        <span class="view-detail-value">${item.quantity || 1} шт.</span>
                     </div>
                     <div class="view-detail-item">
-                        <span class="view-detail-label">Цена продажи:</span>
+                        <span class="view-detail-label">Цена покупки (за ед.):</span>
+                        <span class="view-detail-value">${formatPrice(item.purchasePrice)}</span>
+                    </div>
+                    ${item.quantity > 1 ? `
+                    <div class="view-detail-item">
+                        <span class="view-detail-label">Общая стоимость покупки:</span>
+                        <span class="view-detail-value">${formatPrice((item.purchasePrice || 0) * (item.quantity || 1))}</span>
+                    </div>` : ''}
+                    <div class="view-detail-item">
+                        <span class="view-detail-label">Цена продажи (за ед.):</span>
                         <span class="view-detail-value">${formatPrice(item.sellPrice)}</span>
                     </div>
+                    ${item.sellPrice && item.quantity > 1 ? `
+                    <div class="view-detail-item">
+                        <span class="view-detail-label">Общая стоимость продажи:</span>
+                        <span class="view-detail-value">${formatPrice((item.sellPrice || 0) * (item.quantity || 1))}</span>
+                    </div>` : ''}
                     <div class="view-detail-item">
                         <span class="view-detail-label">Состояние:</span>
                         <span class="view-detail-value">${escapeHtml(item.condition || '-')}</span>
@@ -968,21 +1004,22 @@ function createViewContent(item) {
 // Создание контента статистики
 function createStatsContent() {
     const totalItems = items.length;
-    const totalValue = items.reduce((sum, item) => sum + (item.purchasePrice || 0), 0);
-    const averagePrice = totalItems > 0 ? totalValue / totalItems : 0;
+    const totalQuantity = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    const totalValue = items.reduce((sum, item) => sum + ((item.purchasePrice || 0) * (item.quantity || 1)), 0);
+    const averagePrice = totalItems > 0 ? totalValue / totalQuantity : 0;
     
     // Статистика по категориям
     const categoryStats = {};
     items.forEach(item => {
         const category = item.category || 'Без категории';
-        categoryStats[category] = (categoryStats[category] || 0) + 1;
+        categoryStats[category] = (categoryStats[category] || 0) + (item.quantity || 1);
     });
     
     // Статистика по состояниям
     const conditionStats = {};
     items.forEach(item => {
-        const condition = item.condition || 'Не указано';
-        conditionStats[condition] = (conditionStats[condition] || 0) + 1;
+        const condition = item.condition || '-';
+        conditionStats[condition] = (conditionStats[condition] || 0) + (item.quantity || 1);
     });
     
     const categoryStatsHtml = Object.entries(categoryStats)
@@ -1006,15 +1043,19 @@ function createStatsContent() {
     return `
         <div class="stats-grid">
             <div class="stats-card">
-                <h4>Всего вещей</h4>
+                <h4>Позиций в каталоге</h4>
                 <div class="stats-value">${totalItems}</div>
+            </div>
+            <div class="stats-card">
+                <h4>Общее количество вещей</h4>
+                <div class="stats-value">${totalQuantity} шт.</div>
             </div>
             <div class="stats-card">
                 <h4>Общая стоимость</h4>
                 <div class="stats-value">${formatPrice(totalValue)}</div>
             </div>
             <div class="stats-card">
-                <h4>Средняя цена</h4>
+                <h4>Средняя цена за единицу</h4>
                 <div class="stats-value">${formatPrice(averagePrice)}</div>
             </div>
         </div>
