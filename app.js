@@ -5,6 +5,7 @@ let currentEditingId = null;
 let currentViewingId = null;
 let nextId = 1;
 let currentSort = { column: null, direction: 'asc' };
+let isCompactView = false; // Состояние компактного вида
 
 // Предустановленные данные
 const CONDITIONS = ["Новый", "Отличное", "Хорошее", "Удовлетворительное", "Плохое", "Витринный образец", "Восстановленный", "Б/у"];
@@ -100,6 +101,10 @@ document.addEventListener('DOMContentLoaded', function() {
     loadData();
     populateFilters();
     applyFilters();
+    // Инициализация компактного вида после отрисовки таблицы
+    setTimeout(() => {
+        initializeCompactView();
+    }, 100);
 });
 
 // Инициализация приложения
@@ -135,6 +140,10 @@ function setupEventListeners() {
     
     const statsBtn = document.getElementById('statsBtn');
     if (statsBtn) statsBtn.addEventListener('click', openStatsModal);
+    
+    // Кнопка переключения компактного вида
+    const toggleViewBtn = document.getElementById('toggleViewBtn');
+    if (toggleViewBtn) toggleViewBtn.addEventListener('click', toggleCompactView);
 
     // Поиск и фильтры с мгновенным применением
     const searchInput = document.getElementById('searchInput');
@@ -443,7 +452,7 @@ function renderTable() {
         
         return `
             <tr>
-                <td>
+                <td class="photo-column">
                     <div class="item-photo" ${mainPhotoUrl ? `style="background-image: url('${mainPhotoUrl}')"` : ''}>
                         ${mainPhotoUrl ? '' : 'Нет фото'}
                     </div>
@@ -991,6 +1000,104 @@ function handleImportFile(event) {
     
     // Сбрасываем значение input
     event.target.value = '';
+}
+
+// Переключение компактного вида
+function toggleCompactView() {
+    isCompactView = !isCompactView;
+    const tableContainer = document.querySelector('.table-container');
+    const toggleIcon = document.getElementById('viewToggleIcon');
+    
+    if (tableContainer) {
+        if (isCompactView) {
+            tableContainer.classList.add('compact');
+        } else {
+            tableContainer.classList.remove('compact');
+        }
+    }
+    
+    if (toggleIcon) {
+        toggleIcon.textContent = isCompactView ? '🗜️' : '⬜';
+    }
+    
+    // Сохраняем состояние в localStorage
+    try {
+        localStorage.setItem('catalogCompactView', JSON.stringify(isCompactView));
+    } catch (error) {
+        console.error('Error saving compact view state:', error);
+    }
+}
+
+// Инициализация состояния компактного вида
+function initializeCompactView() {
+    try {
+        const savedState = localStorage.getItem('catalogCompactView');
+        if (savedState !== null) {
+            isCompactView = JSON.parse(savedState);
+            const tableContainer = document.querySelector('.table-container');
+            const toggleIcon = document.getElementById('viewToggleIcon');
+            
+            if (tableContainer && isCompactView) {
+                tableContainer.classList.add('compact');
+            }
+            
+            if (toggleIcon) {
+                toggleIcon.textContent = isCompactView ? '🗜️' : '⬜';
+            }
+        }
+    } catch (error) {
+        console.error('Error loading compact view state:', error);
+    }
+}
+
+// Утилиты
+function formatPrice(price) {
+    if (!price && price !== 0) return '-';
+    return new Intl.NumberFormat('ru-RU', {
+        style: 'currency',
+        currency: 'RUB',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(price);
+}
+
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ru-RU', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        });
+    } catch (error) {
+        return '-';
+    }
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.toString().replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
+// Функция debounce для оптимизации поиска
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func.apply(this, args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
 }
 
 // Утилиты

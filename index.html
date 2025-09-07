@@ -21,6 +21,10 @@
                         <button class="btn btn--outline" id="importBtn">Импорт</button>
                         <button class="btn btn--outline" id="exportBtn">Экспорт</button>
                         <button class="btn btn--secondary" id="statsBtn">Статистика</button>
+                        <button class="btn btn--outline" id="toggleViewBtn" title="Переключить компактный вид">
+                            <span class="btn-icon" id="viewToggleIcon">⬜</span>
+                            Компактный вид
+                        </button>
                     </div>
                 </div>
             </div>
@@ -97,7 +101,7 @@
                             <table class="items-table" id="itemsTable">
                                 <thead>
                                     <tr>
-                                        <th class="sortable" data-column="photo">Фото</th>
+                                        <th class="sortable photo-column" data-column="photo">Фото</th>
                                         <th class="sortable" data-column="name">
                                             Название
                                             <span class="sort-indicator"></span>
