@@ -967,6 +967,28 @@ select.form-control {
   background-color: var(--color-bg-2) !important;
 }
 
+/* Visual feedback for right-click context menu */
+.table-row-clickable {
+  position: relative;
+}
+
+.table-row-clickable::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: transparent;
+  transition: background-color var(--duration-fast) var(--ease-standard);
+  pointer-events: none;
+}
+
+/* Add subtle hint that right-click is available */
+.table-row-clickable:hover::after {
+  background-color: rgba(var(--color-primary-rgb, 33, 128, 141), 0.02);
+}
+
 .items-table td {
   color: var(--color-text);
   vertical-align: top;

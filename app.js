@@ -506,6 +506,7 @@ function renderTable() {
     
     // Add click event listeners to table rows
     document.querySelectorAll('.table-row-clickable').forEach(row => {
+        // Left click to open item details
         row.addEventListener('click', function(e) {
             // Prevent opening modal if clicking on action buttons
             if (e.target.closest('.action-buttons')) {
@@ -513,6 +514,22 @@ function renderTable() {
             }
             const itemId = parseInt(this.dataset.itemId);
             openViewModal(itemId);
+        });
+        
+        // Right click to open context menu
+        row.addEventListener('contextmenu', function(e) {
+            e.preventDefault(); // Prevent browser context menu
+            
+            // Close any open menus first
+            closeAllActionMenus();
+            
+            // Find the menu button for this row
+            const menuButton = this.querySelector('.action-menu-btn');
+            if (menuButton) {
+                const itemId = parseInt(this.dataset.itemId);
+                // Open the menu at the right-click position
+                toggleActionMenuAtPosition(menuButton, itemId, e.clientX, e.clientY);
+            }
         });
     });
 }
@@ -1077,52 +1094,10 @@ function toggleActionMenu(button, itemId) {
     const menu = button.nextElementSibling;
     menu.classList.toggle('hidden');
     
-    // Позиционируем меню как контекстное меню
+    // Позиционируем меню относительно кнопки
     if (!menu.classList.contains('hidden')) {
-        // Используем fixed позиционирование для выхода за пределы контейнера
-        menu.style.position = 'fixed';
-        
-        // Получаем координаты кнопки относительно вьюпорта
         const buttonRect = button.getBoundingClientRect();
-        
-        // Получаем размеры меню (сначала показываем его для измерения)
-        menu.style.visibility = 'hidden';
-        menu.style.display = 'block';
-        const menuRect = menu.getBoundingClientRect();
-        menu.style.visibility = '';
-        menu.style.display = '';
-        
-        // Рассчитываем оптимальную позицию
-        let left = buttonRect.left;
-        let top = buttonRect.bottom + 2; // Небольшой отступ
-        
-        // Проверяем горизонтальное переполнение
-        if (left + menuRect.width > window.innerWidth) {
-            // Меню выходит за правую границу - сдвигаем влево
-            left = buttonRect.right - menuRect.width;
-        }
-        
-        // Проверяем, что меню не выходит за левую границу
-        if (left < 0) {
-            left = 8; // Минимальный отступ от края экрана
-        }
-        
-        // Проверяем вертикальное переполнение
-        if (top + menuRect.height > window.innerHeight) {
-            // Меню выходит за нижнюю границу - показываем сверху
-            top = buttonRect.top - menuRect.height - 2;
-        }
-        
-        // Проверяем, что меню не выходит за верхнюю границу
-        if (top < 0) {
-            top = 8; // Минимальный отступ от верха экрана
-        }
-        
-        // Применяем позицию
-        menu.style.left = `${left}px`;
-        menu.style.top = `${top}px`;
-        menu.style.right = 'auto';
-        menu.style.bottom = 'auto';
+        positionActionMenu(menu, buttonRect.left, buttonRect.bottom + 2);
     } else {
         // Возвращаем обычное позиционирование
         menu.style.position = '';
@@ -1131,6 +1106,71 @@ function toggleActionMenu(button, itemId) {
         menu.style.right = '';
         menu.style.bottom = '';
     }
+}
+
+// Открытие меню в указанной позиции (для правого клика)
+function toggleActionMenuAtPosition(button, itemId, x, y) {
+    // Закрываем все другие открытые меню
+    document.querySelectorAll('.action-menu').forEach(menu => {
+        menu.classList.add('hidden');
+        menu.style.position = '';
+        menu.style.top = '';
+        menu.style.left = '';
+        menu.style.right = '';
+        menu.style.bottom = '';
+    });
+    
+    // Открываем меню
+    const menu = button.nextElementSibling;
+    menu.classList.remove('hidden');
+    
+    // Позиционируем меню в позиции курсора
+    positionActionMenu(menu, x, y);
+}
+
+// Функция позиционирования меню
+function positionActionMenu(menu, x, y) {
+    // Используем fixed позиционирование для выхода за пределы контейнера
+    menu.style.position = 'fixed';
+    
+    // Получаем размеры меню (сначала показываем его для измерения)
+    menu.style.visibility = 'hidden';
+    menu.style.display = 'block';
+    const menuRect = menu.getBoundingClientRect();
+    menu.style.visibility = '';
+    menu.style.display = '';
+    
+    // Рассчитываем оптимальную позицию
+    let left = x;
+    let top = y;
+    
+    // Проверяем горизонтальное переполнение
+    if (left + menuRect.width > window.innerWidth) {
+        // Меню выходит за правую границу - сдвигаем влево
+        left = x - menuRect.width;
+    }
+    
+    // Проверяем, что меню не выходит за левую границу
+    if (left < 0) {
+        left = 8; // Минимальный отступ от края экрана
+    }
+    
+    // Проверяем вертикальное переполнение
+    if (top + menuRect.height > window.innerHeight) {
+        // Меню выходит за нижнюю границу - показываем сверху
+        top = y - menuRect.height;
+    }
+    
+    // Проверяем, что меню не выходит за верхнюю границу
+    if (top < 0) {
+        top = 8; // Минимальный отступ от верха экрана
+    }
+    
+    // Применяем позицию
+    menu.style.left = `${left}px`;
+    menu.style.top = `${top}px`;
+    menu.style.right = 'auto';
+    menu.style.bottom = 'auto';
 }
 
 // Дублирование элемента
