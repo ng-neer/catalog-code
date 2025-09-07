@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Каталог домашних вещей</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Заголовок приложения -->
+        <header class="app-header">
+            <div class="container">
+                <div class="header-content">
+                    <h1>Каталог домашних вещей</h1>
+                    <div class="header-actions">
+                        <button class="btn btn--primary" id="addItemBtn">
+                            <span class="btn-icon">+</span>
+                            Добавить вещь
+                        </button>
+                        <button class="btn btn--outline" id="importBtn">Импорт</button>
+                        <button class="btn btn--outline" id="exportBtn">Экспорт</button>
+                        <button class="btn btn--secondary" id="statsBtn">Статистика</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="app-main">
+            <div class="container">
+                <div class="main-layout">
+                    <!-- Боковая панель с фильтрами -->
+                    <aside class="sidebar">
+                        <div class="sidebar-section">
+                            <h3>Поиск</h3>
+                            <input type="text" id="searchInput" class="form-control" placeholder="Поиск по названию, описанию, тегам...">
+                        </div>
+
+                        <div class="sidebar-section">
+                            <h3>Фильтры</h3>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Категории</label>
+                                <div class="checkbox-group" id="categoryFilters">
+                                    <!-- Динамически заполняется -->
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Состояния</label>
+                                <div class="checkbox-group" id="conditionFilters">
+                                    <!-- Динамически заполняется -->
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Цена от</label>
+                                <input type="number" id="priceFromFilter" class="form-control" placeholder="0" min="0">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Цена до</label>
+                                <input type="number" id="priceToFilter" class="form-control" placeholder="1000000" min="0">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Дата покупки от</label>
+                                <input type="date" id="dateFromFilter" class="form-control">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Дата покупки до</label>
+                                <input type="date" id="dateToFilter" class="form-control">
+                            </div>
+
+                            <button class="btn btn--secondary btn--full-width" id="clearFiltersBtn">Очистить фильтры</button>
+                        </div>
+
+                        <div class="sidebar-section">
+                            <h3>Статистика</h3>
+                            <div class="stats-summary">
+                                <div class="stat-item">
+                                    <span class="stat-label">Найдено:</span>
+                                    <span class="stat-value" id="foundCount">0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Общая стоимость:</span>
+                                    <span class="stat-value" id="totalPrice">0 ₽</span>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <!-- Основная область с таблицей -->
+                    <section class="content-area">
+                        <div class="table-container">
+                            <table class="items-table" id="itemsTable">
+                                <thead>
+                                    <tr>
+                                        <th class="sortable" data-column="photo">Фото</th>
+                                        <th class="sortable" data-column="name">
+                                            Название
+                                            <span class="sort-indicator"></span>
+                                        </th>
+                                        <th class="sortable" data-column="category">
+                                            Категория
+                                            <span class="sort-indicator"></span>
+                                        </th>
+                                        <th class="sortable" data-column="condition">
+                                            Состояние
+                                            <span class="sort-indicator"></span>
+                                        </th>
+                                        <th class="sortable" data-column="purchasePrice">
+                                            Цена покупки
+                                            <span class="sort-indicator"></span>
+                                        </th>
+                                        <th class="sortable" data-column="sellPrice">
+                                            Цена продажи
+                                            <span class="sort-indicator"></span>
+                                        </th>
+                                        <th class="sortable" data-column="purchaseDate">
+                                            Дата покупки
+                                            <span class="sort-indicator"></span>
+                                        </th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody">
+                                    <!-- Динамически заполняется -->
+                                </tbody>
+                            </table>
+                            
+                            <div class="empty-state hidden" id="emptyState">
+                                <h3>Ничего не найдено</h3>
+                                <p>Попробуйте изменить фильтры или добавить новую вещь</p>
+                                <button class="btn btn--primary" onclick="openAddItemModal()">Добавить вещь</button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Модальные окна -->
+
+    <!-- Модальное окно добавления/редактирования вещи -->
+    <div class="modal hidden" id="itemModal">
+        <div class="modal-overlay" onclick="closeItemModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Добавить вещь</h2>
+                <button class="modal-close" onclick="closeItemModal()">×</button>
+            </div>
+            
+            <form id="itemForm" class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Название *</label>
+                        <input type="text" id="itemName" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Категория</label>
+                        <select id="itemCategory" class="form-control">
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Описание</label>
+                    <textarea id="itemDescription" class="form-control" rows="3"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Дата покупки</label>
+                        <input type="date" id="itemPurchaseDate" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Ссылка на сайт</label>
+                        <input type="url" id="itemWebsite" class="form-control">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Фотографии (ссылки, по одной на строку)</label>
+                    <textarea id="itemPhotos" class="form-control" rows="3" placeholder="https://example.com/photo1.jpg&#10;https://example.com/photo2.jpg"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Цена покупки</label>
+                        <input type="number" id="itemPurchasePrice" class="form-control" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Цена продажи</label>
+                        <input type="number" id="itemSellPrice" class="form-control" min="0">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Состояние</label>
+                        <select id="itemCondition" class="form-control">
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Производитель</label>
+                        <input type="text" id="itemManufacturer" class="form-control">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Комментарий к состоянию</label>
+                    <textarea id="itemConditionComment" class="form-control" rows="2"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Теги (через запятую)</label>
+                    <input type="text" id="itemTags" class="form-control" placeholder="тег1, тег2, тег3">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Материал</label>
+                        <input type="text" id="itemMaterial" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Размеры</label>
+                        <input type="text" id="itemDimensions" class="form-control">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Вес</label>
+                        <input type="text" id="itemWeight" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Цвет</label>
+                        <input type="text" id="itemColor" class="form-control">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Модель/Артикул</label>
+                        <input type="text" id="itemModel" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Гарантийный срок</label>
+                        <input type="text" id="itemWarrantyPeriod" class="form-control">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Комплектность</label>
+                        <input type="text" id="itemCompleteness" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Место покупки</label>
+                        <input type="text" id="itemPurchaseLocation" class="form-control">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Страна производства</label>
+                    <input type="text" id="itemCountryOfOrigin" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Дополнительные заметки</label>
+                    <textarea id="itemNotes" class="form-control" rows="3"></textarea>
+                </div>
+            </form>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn--outline" onclick="closeItemModal()">Отмена</button>
+                <button type="submit" form="itemForm" class="btn btn--primary">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно просмотра вещи -->
+    <div class="modal hidden" id="viewModal">
+        <div class="modal-overlay" onclick="closeViewModal()"></div>
+        <div class="modal-content modal-content--large">
+            <div class="modal-header">
+                <h2 id="viewModalTitle">Просмотр вещи</h2>
+                <button class="modal-close" onclick="closeViewModal()">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <div id="viewModalContent"></div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn--outline" onclick="closeViewModal()">Закрыть</button>
+                <button type="button" class="btn btn--secondary" id="editItemBtn">Редактировать</button>
+                <button type="button" class="btn btn--error" id="deleteItemBtn">Удалить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно статистики -->
+    <div class="modal hidden" id="statsModal">
+        <div class="modal-overlay" onclick="closeStatsModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Статистика</h2>
+                <button class="modal-close" onclick="closeStatsModal()">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <div id="statsContent"></div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn--outline" onclick="closeStatsModal()">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Скрытый input для импорта -->
+    <input type="file" id="importInput" accept=".json" style="display: none;">
+
+    <script src="app.js"></script>
+</body>
+</html>
