@@ -451,7 +451,7 @@ function renderTable() {
         const conditionClass = getConditionClass(item.condition);
         
         return `
-            <tr>
+            <tr class="table-row-clickable" data-item-id="${item.id}" style="cursor: pointer;">
                 <td class="photo-column">
                     <div class="item-photo" ${mainPhotoUrl ? `style="background-image: url('${mainPhotoUrl}')"` : ''}>
                         ${mainPhotoUrl ? '' : 'Нет фото'}
@@ -477,14 +477,25 @@ function renderTable() {
                 </td>
                 <td>
                     <div class="action-buttons">
-                        <button class="action-btn action-btn--view" onclick="openViewModal(${item.id})">Просмотр</button>
-                        <button class="action-btn action-btn--edit" onclick="openEditItemModal(${item.id})">Редактировать</button>
-                        <button class="action-btn action-btn--delete" onclick="confirmDelete(${item.id})">Удалить</button>
+                        <button class="action-btn action-btn--edit" onclick="event.stopPropagation(); openEditItemModal(${item.id});">Редактировать</button>
+                        <button class="action-btn action-btn--delete" onclick="event.stopPropagation(); confirmDelete(${item.id});">Удалить</button>
                     </div>
                 </td>
             </tr>
         `;
     }).join('');
+    
+    // Add click event listeners to table rows
+    document.querySelectorAll('.table-row-clickable').forEach(row => {
+        row.addEventListener('click', function(e) {
+            // Prevent opening modal if clicking on action buttons
+            if (e.target.closest('.action-buttons')) {
+                return;
+            }
+            const itemId = parseInt(this.dataset.itemId);
+            openViewModal(itemId);
+        });
+    });
 }
 
 // Получение CSS класса для состояния

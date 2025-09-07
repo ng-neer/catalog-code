@@ -954,6 +954,16 @@ select.form-control {
   background-color: var(--color-bg-3);
 }
 
+/* Clickable table rows */
+.table-row-clickable:hover {
+  background-color: var(--color-bg-3) !important;
+  transition: background-color var(--duration-fast) var(--ease-standard);
+}
+
+.table-row-clickable:active {
+  background-color: var(--color-bg-2) !important;
+}
+
 .items-table td {
   color: var(--color-text);
   vertical-align: top;
@@ -1033,16 +1043,6 @@ select.form-control {
   cursor: pointer;
   transition: all var(--duration-fast) var(--ease-standard);
   white-space: nowrap;
-}
-
-.action-btn--view {
-  background-color: var(--color-bg-1);
-  color: var(--color-primary);
-}
-
-.action-btn--view:hover {
-  background-color: var(--color-primary);
-  color: var(--color-surface);
 }
 
 .action-btn--edit {
