@@ -32,6 +32,7 @@
   --color-red-400-rgb: 255, 84, 89;
   --color-orange-500-rgb: 168, 75, 47;
   --color-orange-400-rgb: 230, 129, 97;
+  --color-text-secondary-rgb: 98, 108, 113;
 
   /* Background color tokens (Light Mode) */
   --color-bg-1: rgba(59, 130, 246, 0.08); /* Light blue */
@@ -152,6 +153,7 @@
     --color-teal-300-rgb: 50, 184, 198;
     --color-gray-300-rgb: 167, 169, 169;
     --color-gray-200-rgb: 245, 245, 245;
+    --color-text-secondary-rgb: 119, 124, 124;
 
     /* Background color tokens (Dark Mode) */
     --color-bg-1: rgba(29, 78, 216, 0.15); /* Dark blue */
@@ -212,6 +214,7 @@
   --color-teal-300-rgb: 50, 184, 198;
   --color-gray-300-rgb: 167, 169, 169;
   --color-gray-200-rgb: 245, 245, 245;
+  --color-text-secondary-rgb: 119, 124, 124;
 
   /* Colorful background palette - Dark Mode */
   --color-bg-1: rgba(29, 78, 216, 0.15); /* Dark blue */
@@ -1625,6 +1628,10 @@ select.form-control {
   border-radius: var(--radius-base);
   box-shadow: var(--shadow-lg);
 }
+
+@media (max-width: 1024px) {
+  .main-layout {
+    grid-template-columns: 1fr;
     gap: var(--space-24);
   }
   
@@ -1753,4 +1760,106 @@ select.form-control {
 /* Скрытие колонки фото в компактном режиме */
 .table-container.compact .photo-column {
   display: none;
+}
+
+/* Custom Scrollbar Styling */
+/* Webkit scrollbars for modern browsers */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-1);
+  border-radius: var(--radius-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-base);
+  transition: background-color var(--duration-fast) var(--ease-standard);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: var(--color-primary);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--color-bg-1);
+}
+
+/* Firefox scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) var(--color-bg-1);
+}
+
+/* Scrollbar styles for specific containers */
+.checkbox-group::-webkit-scrollbar,
+.modal-body::-webkit-scrollbar,
+.sidebar::-webkit-scrollbar,
+.table-container::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.checkbox-group::-webkit-scrollbar-thumb,
+.modal-body::-webkit-scrollbar-thumb,
+.sidebar::-webkit-scrollbar-thumb,
+.table-container::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-text-secondary-rgb, 98, 108, 113), 0.4);
+  border-radius: var(--radius-sm);
+}
+
+.checkbox-group::-webkit-scrollbar-thumb:hover,
+.modal-body::-webkit-scrollbar-thumb:hover,
+.sidebar::-webkit-scrollbar-thumb:hover,
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--color-text-secondary-rgb, 98, 108, 113), 0.6);
+}
+
+.checkbox-group::-webkit-scrollbar-track,
+.modal-body::-webkit-scrollbar-track,
+.sidebar::-webkit-scrollbar-track,
+.table-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Dark mode adjustments for scrollbars */
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-thumb {
+    background: rgba(var(--color-gray-400-rgb, 119, 124, 124), 0.5);
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(var(--color-gray-300-rgb, 167, 169, 169), 0.7);
+  }
+  
+  ::-webkit-scrollbar-thumb:active {
+    background: var(--color-primary);
+  }
+  
+  * {
+    scrollbar-color: rgba(var(--color-gray-400-rgb, 119, 124, 124), 0.5) var(--color-bg-1);
+  }
+}
+
+[data-color-scheme="dark"] ::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-gray-400-rgb, 119, 124, 124), 0.5);
+}
+
+[data-color-scheme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--color-gray-300-rgb, 167, 169, 169), 0.7);
+}
+
+[data-color-scheme="dark"] ::-webkit-scrollbar-thumb:active {
+  background: var(--color-primary);
+}
+
+[data-color-scheme="dark"] * {
+  scrollbar-color: rgba(var(--color-gray-400-rgb, 119, 124, 124), 0.5) var(--color-bg-1);
 }
