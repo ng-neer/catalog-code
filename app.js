@@ -18,7 +18,7 @@ const SAMPLE_ITEMS = [
         name: "Кофемашина DeLonghi",
         description: "Автоматическая кофемашина с капучинатором",
         purchaseDate: "2023-05-15",
-        website: "https://delonghi.com",
+        websites: ["https://delonghi.com", "https://shop.delonghi.com"],
         photos: ["https://via.placeholder.com/300x200?text=Кофемашина"],
         mainPhoto: 0,
         quantity: 1,
@@ -45,7 +45,7 @@ const SAMPLE_ITEMS = [
         name: "Диван угловой",
         description: "Большой угловой диван из натуральной кожи",
         purchaseDate: "2022-12-01",
-        website: "https://furniture.com",
+        websites: ["https://furniture.com"],
         photos: ["https://via.placeholder.com/300x200?text=Диван"],
         mainPhoto: 0,
         quantity: 1,
@@ -72,7 +72,7 @@ const SAMPLE_ITEMS = [
         name: "iPhone 14 Pro",
         description: "Смартфон Apple iPhone 14 Pro 256GB",
         purchaseDate: "2024-01-20",
-        website: "https://apple.com",
+        websites: ["https://apple.com", "https://re-store.ru", "https://techspecs.blog"],
         photos: ["https://via.placeholder.com/300x200?text=iPhone"],
         mainPhoto: 0,
         quantity: 2,
@@ -206,10 +206,11 @@ function loadData() {
         if (savedItems) {
             items = JSON.parse(savedItems);
             
-            // Обеспечиваем обратную совместимость для количества
+            // Обеспечиваем обратную совместимость для количества и вебсайтов
             items = items.map(item => ({
                 ...item,
-                quantity: item.quantity || 1
+                quantity: item.quantity || 1,
+                websites: item.websites || (item.website ? [item.website] : [])
             }));
             
             nextId = Math.max(...items.map(item => item.id || 0), 0) + 1;
@@ -739,6 +740,9 @@ function collectFormData() {
     const photosText = getData('itemPhotos');
     const photos = photosText ? photosText.split('\n').map(url => url.trim()).filter(url => url) : [];
     
+    const websitesText = getData('itemWebsite');
+    const websites = websitesText ? websitesText.split('\n').map(url => url.trim()).filter(url => url) : [];
+    
     const tagsText = getData('itemTags');
     const tags = tagsText ? tagsText.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
     
@@ -746,7 +750,7 @@ function collectFormData() {
         name: getData('itemName'),
         description: getData('itemDescription'),
         purchaseDate: getData('itemPurchaseDate'),
-        website: getData('itemWebsite'),
+        websites: websites,
         photos: photos,
         mainPhoto: 0,
         quantity: parseInt(getData('itemQuantity')) || 1,
@@ -779,7 +783,7 @@ function fillForm(item) {
     setData('itemName', item.name);
     setData('itemDescription', item.description);
     setData('itemPurchaseDate', item.purchaseDate);
-    setData('itemWebsite', item.website);
+    setData('itemWebsite', (item.websites || [item.website]).filter(Boolean).join('\n'));
     setData('itemPhotos', (item.photos || []).join('\n'));
     setData('itemQuantity', item.quantity || 1);
     setData('itemPurchasePrice', item.purchasePrice);
@@ -860,6 +864,30 @@ function deleteCurrentItem() {
     }
 }
 
+// Функция для упрощения отображения URL
+function simplifyUrl(url) {
+    try {
+        const urlObj = new URL(url);
+        return urlObj.hostname.replace('www.', '');
+    } catch {
+        return url;
+    }
+}
+
+// Функция для отображения веб-сайтов
+function renderWebsites(item) {
+    const websites = item.websites || (item.website ? [item.website] : []);
+    
+    if (!websites || websites.length === 0) {
+        return '-';
+    }
+    
+    return websites.map(url => {
+        const displayText = simplifyUrl(url);
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="view-website">${escapeHtml(displayText)}</a>`;
+    }).join(', ');
+}
+
 // Создание контента для просмотра
 function createViewContent(item) {
     const photos = item.photos && item.photos.length > 0 
@@ -899,10 +927,8 @@ function createViewContent(item) {
                         <span class="view-detail-value">${formatDate(item.purchaseDate)}</span>
                     </div>
                     <div class="view-detail-item">
-                        <span class="view-detail-label">Сайт:</span>
-                        <span class="view-detail-value">
-                            ${item.website ? `<a href="${item.website}" target="_blank" class="view-website">${item.website}</a>` : '-'}
-                        </span>
+                        <span class="view-detail-label">Сайты:</span>
+                        <span class="view-detail-value">${renderWebsites(item)}</span>
                     </div>
                 </div>
                 

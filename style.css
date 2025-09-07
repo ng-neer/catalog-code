@@ -1402,10 +1402,17 @@ select.form-control {
 .view-website {
   color: var(--color-primary);
   text-decoration: underline;
+  margin-right: var(--space-8);
+  display: inline-block;
+  transition: color var(--duration-fast) var(--ease-standard);
 }
 
 .view-website:hover {
   color: var(--color-primary-hover);
+}
+
+.view-website:last-child {
+  margin-right: 0;
 }
 
 /* Статистика */
