@@ -465,7 +465,7 @@ function renderTable() {
             <tr class="table-row-clickable" data-item-id="${item.id}" style="cursor: pointer;">
                 <td class="photo-column">
                     <div class="item-photo" ${mainPhotoUrl ? `style="background-image: url('${mainPhotoUrl}')"` : ''}>
-                        ${mainPhotoUrl ? '' : 'Нет фото'}
+                        ${mainPhotoUrl ? '' : '-'}
                     </div>
                 </td>
                 <td>
@@ -475,7 +475,7 @@ function renderTable() {
                     <span class="item-category">${escapeHtml(item.category || 'Без категории')}</span>
                 </td>
                 <td>
-                    <span class="item-condition ${conditionClass}">${escapeHtml(item.condition || 'Не указано')}</span>
+                    <span class="item-condition ${conditionClass}">${escapeHtml(item.condition || '-')}</span>
                 </td>
                 <td>
                     <span class="item-price">${formatPrice(item.purchasePrice)}</span>
@@ -820,11 +820,11 @@ function createViewContent(item) {
                 <div class="view-photo-placeholder" style="display: none;">Ошибка загрузки</div>
             </div>
         `).join('')
-        : '<div class="view-photo-container"><div class="view-photo-placeholder">Нет фотографий</div></div>';
+        : '<div class="view-photo-container"><div class="view-photo-placeholder">-</div></div>';
     
     const tags = item.tags && item.tags.length > 0
         ? item.tags.map(tag => `<span class="view-tag">${escapeHtml(tag)}</span>`).join('')
-        : '<span class="text-muted">Нет тегов</span>';
+        : '<span class="text-muted">-</span>';
     
     return `
         <div class="view-content">
@@ -839,11 +839,11 @@ function createViewContent(item) {
                     </div>
                     <div class="view-detail-item">
                         <span class="view-detail-label">Категория:</span>
-                        <span class="view-detail-value">${escapeHtml(item.category || 'Не указана')}</span>
+                        <span class="view-detail-value">${escapeHtml(item.category || '-')}</span>
                     </div>
                     <div class="view-detail-item">
                         <span class="view-detail-label">Описание:</span>
-                        <span class="view-detail-value">${escapeHtml(item.description || 'Не указано')}</span>
+                        <span class="view-detail-value">${escapeHtml(item.description || '-')}</span>
                     </div>
                     <div class="view-detail-item">
                         <span class="view-detail-label">Дата покупки:</span>
@@ -852,7 +852,7 @@ function createViewContent(item) {
                     <div class="view-detail-item">
                         <span class="view-detail-label">Сайт:</span>
                         <span class="view-detail-value">
-                            ${item.website ? `<a href="${item.website}" target="_blank" class="view-website">${item.website}</a>` : 'Не указан'}
+                            ${item.website ? `<a href="${item.website}" target="_blank" class="view-website">${item.website}</a>` : '-'}
                         </span>
                     </div>
                 </div>
@@ -873,7 +873,7 @@ function createViewContent(item) {
                     </div>
                     <div class="view-detail-item">
                         <span class="view-detail-label">Комментарий:</span>
-                        <span class="view-detail-value">${escapeHtml(item.conditionComment || 'Нет комментария')}</span>
+                        <span class="view-detail-value">${escapeHtml(item.conditionComment || '-')}</span>
                     </div>
                 </div>
                 
@@ -881,27 +881,27 @@ function createViewContent(item) {
                     <h4>Характеристики</h4>
                     <div class="view-detail-item">
                         <span class="view-detail-label">Производитель:</span>
-                        <span class="view-detail-value">${escapeHtml(item.manufacturer || 'Не указан')}</span>
+                        <span class="view-detail-value">${escapeHtml(item.manufacturer || '-')}</span>
                     </div>
                     <div class="view-detail-item">
                         <span class="view-detail-label">Модель:</span>
-                        <span class="view-detail-value">${escapeHtml(item.model || 'Не указана')}</span>
+                        <span class="view-detail-value">${escapeHtml(item.model || '-')}</span>
                     </div>
                     <div class="view-detail-item">
                         <span class="view-detail-label">Материал:</span>
-                        <span class="view-detail-value">${escapeHtml(item.material || 'Не указан')}</span>
+                        <span class="view-detail-value">${escapeHtml(item.material || '-')}</span>
                     </div>
                     <div class="view-detail-item">
                         <span class="view-detail-label">Размеры:</span>
-                        <span class="view-detail-value">${escapeHtml(item.dimensions || 'Не указаны')}</span>
+                        <span class="view-detail-value">${escapeHtml(item.dimensions || '-')}</span>
                     </div>
                     <div class="view-detail-item">
                         <span class="view-detail-label">Вес:</span>
-                        <span class="view-detail-value">${escapeHtml(item.weight || 'Не указан')}</span>
+                        <span class="view-detail-value">${escapeHtml(item.weight || '-')}</span>
                     </div>
                     <div class="view-detail-item">
                         <span class="view-detail-label">Цвет:</span>
-                        <span class="view-detail-value">${escapeHtml(item.color || 'Не указан')}</span>
+                        <span class="view-detail-value">${escapeHtml(item.color || '-')}</span>
                     </div>
                 </div>
                 
@@ -909,23 +909,23 @@ function createViewContent(item) {
                     <h4>Дополнительно</h4>
                     <div class="view-detail-item">
                         <span class="view-detail-label">Гарантия:</span>
-                        <span class="view-detail-value">${escapeHtml(item.warrantyPeriod || 'Не указана')}</span>
+                        <span class="view-detail-value">${escapeHtml(item.warrantyPeriod || '-')}</span>
                     </div>
                     <div class="view-detail-item">
                         <span class="view-detail-label">Комплектность:</span>
-                        <span class="view-detail-value">${escapeHtml(item.completeness || 'Не указана')}</span>
+                        <span class="view-detail-value">${escapeHtml(item.completeness || '-')}</span>
                     </div>
                     <div class="view-detail-item">
                         <span class="view-detail-label">Место покупки:</span>
-                        <span class="view-detail-value">${escapeHtml(item.purchaseLocation || 'Не указано')}</span>
+                        <span class="view-detail-value">${escapeHtml(item.purchaseLocation || '-')}</span>
                     </div>
                     <div class="view-detail-item">
                         <span class="view-detail-label">Страна:</span>
-                        <span class="view-detail-value">${escapeHtml(item.countryOfOrigin || 'Не указана')}</span>
+                        <span class="view-detail-value">${escapeHtml(item.countryOfOrigin || '-')}</span>
                     </div>
                     <div class="view-detail-item">
                         <span class="view-detail-label">Заметки:</span>
-                        <span class="view-detail-value">${escapeHtml(item.notes || 'Нет заметок')}</span>
+                        <span class="view-detail-value">${escapeHtml(item.notes || '-')}</span>
                     </div>
                 </div>
             </div>
@@ -1294,7 +1294,7 @@ function formatDate(dateStr) {
     try {
         return new Date(dateStr).toLocaleDateString('ru-RU');
     } catch {
-        return 'Неверная дата';
+        return '-';
     }
 }
 
